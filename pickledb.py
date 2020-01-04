@@ -33,6 +33,7 @@
 
 import sys
 import os
+import stat
 import signal
 import json
 from threading import Thread
@@ -89,12 +90,16 @@ class PickleDB(object):
 
     def dump(self):
         '''Force dump memory db to file'''
+        if not os.path.isfile(self.loco):
+            open(self.loco, 'wt')
+        os.chmod(self.loco, stat.S_IWRITE)
         json.dump(self.db, open(self.loco, 'wt'))
         self.dthread = Thread(
             target=json.dump,
             args=(self.db, open(self.loco, 'wt')))
         self.dthread.start()
         self.dthread.join()
+        os.chmod(self.loco, stat.S_IREAD)
         return True
 
     def _loaddb(self):
